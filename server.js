@@ -16,6 +16,12 @@ app.use(cors({
 app.use(express.static(path.join(__dirname, "public")));
 
 // Database connection
+if(process.env.MONGODB_URI){
+  console.log("✅ Connected to Mongo Atlas");
+} else {
+  console.log("MongoDB connection dB");
+}
+
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/survey_platform';
 
 mongoose.connect(MONGODB_URI, {
