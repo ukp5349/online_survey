@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Survey Platform</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="main-header">
+      <h1><i class="fas fa-poll"></i> Online Survey Platform</h1>
+      <p class="subtitle">Create and participate in surveys with real-time results</p>
+      
+      <!-- User Authentication Section -->
+      <div id="authSection" class="auth-section">
+        <div id="loginForm" class="auth-form">
+          <input type="text" id="usernameInput" placeholder="Enter username" maxlength="20">
+          <button onclick="login()" class="auth-btn login-btn">
+            <i class="fas fa-sign-in-alt"></i> Login / Register
+          </button>
+        </div>
+        <div id="userInfo" class="user-info" style="display: none;">
+          <div class="profile-dropdown">
+            <button id="profileAvatar" class="profile-avatar" onclick="toggleProfileDropdown()">
+              <span id="displayUsername"></span>
+            </button>
+            <div id="profileDropdown" class="profile-dropdown-menu">
+              <button onclick="showProfile()" class="dropdown-item">
+                <i class="fas fa-user"></i> Profile
+              </button>
+              <button onclick="logout()" class="dropdown-item">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Active Surveys Section -->
+      <section class="surveys-section">
+        <h2><i class="fas fa-list"></i> Active Surveys</h2>
+        <div id="activeSurveys" class="surveys-grid"></div>
+        <div id="activeLoadingSkeleton" class="loading-skeleton" style="display: none;">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="activeEmptyState" class="empty-state" style="display: none;">
+          <i class="fas fa-poll-h"></i>
+          <h3>No active surveys</h3>
+          <p>Be the first to create a survey!</p>
+        </div>
+      </section>
+
+      <!-- Past Surveys Section -->
+      <section class="past-surveys-section">
+        <div class="section-header">
+          <h2><i class="fas fa-history"></i> Past Surveys</h2>
+          <button id="togglePastSurveys" class="toggle-btn">
+            <i class="fas fa-chevron-down"></i>
+          </button>
+        </div>
+        <div id="pastSurveys" class="surveys-grid collapsed"></div>
+        <div id="pastEmptyState" class="empty-state" style="display: none;">
+          <i class="fas fa-archive"></i>
+          <h3>No past surveys</h3>
+          <p>Ended or expired surveys will appear here.</p>
+        </div>
+      </section>
+
+      <!-- Create New Survey Section -->
+      <section class="new-survey-section" id="createSurveySection" style="display: none;">
+        <div class="new-survey-card">
+          <h2><i class="fas fa-plus-circle"></i> Create a New Survey</h2>
+          <form id="surveyForm" class="survey-form">
+            <div class="form-group">
+              <label for="surveyTitle">Survey Title (Optional)</label>
+              <input type="text" id="surveyTitle" placeholder="Enter survey title...">
+            </div>
+
+            <div class="form-group">
+              <label for="question">Survey Question</label>
+              <input type="text" id="question" placeholder="Enter your survey question..." required>
+            </div>
+
+            <div class="form-group">
+              <label for="surveyType">Survey Type</label>
+              <select id="surveyType" onchange="handleSurveyTypeChange()" required>
+                <option value="">Select survey type...</option>
+                <option value="yesno">Yes/No Question</option>
+                <option value="multiple">Multiple Choice (2-6 options)</option>
+                <option value="rating">Rating (1-5 Stars)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="optionsGroup" style="display: none;">
+              <label>Answer Options</label>
+              <div id="optionsContainer" class="options-container">
+                <input type="text" name="options" placeholder="Option 1">
+                <input type="text" name="options" placeholder="Option 2">
+              </div>
+              <button type="button" onclick="addOption()" class="add-option-btn">
+                <i class="fas fa-plus"></i> Add Option
+              </button>
+            </div>
+
+            <div class="form-group">
+              <label for="expiryDate">Expiry Date (Optional)</label>
+              <input type="datetime-local" id="expiryDate" min="">
+            </div>
+
+            <button type="submit" class="create-survey-btn">
+              <i class="fas fa-paper-plane"></i> Create Survey
+            </button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- User Profile Modal -->
+  <div id="profileModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-user"></i> User Profile</h3>
+        <button onclick="closeProfile()" class="close-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="profile-header">
+          <h2 id="profileUsername">Username</h2>
+        </div>
+        
+        <div class="profile-stats">
+          <div class="stat-item">
+            <i class="fas fa-poll"></i>
+            <span class="stat-label">Surveys Created</span>
+            <span class="stat-value" id="surveysCreated">0</span>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-vote-yea"></i>
+            <span class="stat-label">Total Votes</span>
+            <span class="stat-value" id="totalVotes">0</span>
+          </div>
+        </div>
+        
+        <div class="profile-sections">
+          <div class="profile-section">
+            <h5><i class="fas fa-plus-circle"></i> Your Surveys</h5>
+            <div id="userSurveys" class="profile-surveys-list">
+              <div class="loading-text">Loading...</div>
+            </div>
+          </div>
+          
+          <div class="profile-section">
+            <h5><i class="fas fa-vote-yea"></i> Your Votes</h5>
+            <div id="userVotes" class="profile-votes-list">
+              <div class="loading-text">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Message Toast -->
+  <div id="successToast" class="toast">
+    <i class="fas fa-check-circle"></i>
+    <span>Survey created successfully!</span>
+  </div>
+
+  <!-- Error Message Toast -->
+  <div id="errorToast" class="toast error">
+    <i class="fas fa-exclamation-circle"></i>
+    <span>An error occurred!</span>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmationModal" class="confirmation-modal">
+    <div class="confirmation-content">
+      <div class="confirmation-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="confirmation-title" id="confirmationTitle">Confirm Action</div>
+      <div class="confirmation-message" id="confirmationMessage">Are you sure you want to proceed?</div>
+      <div class="confirmation-actions">
+        <button class="confirm-btn" id="confirmBtn">
+          <i class="fas fa-check"></i> Confirm
+        </button>
+        <button class="cancel-btn" id="cancelBtn">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
